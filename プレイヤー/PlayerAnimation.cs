@@ -25,6 +25,11 @@ public class PlayerAnimation : MonoBehaviour
         this.animator.SetTrigger("Jump");
     }
 
+    public void ResetJump()
+    {
+        this.animator.ResetTrigger("Jump");
+    }
+
     //移動
     public void Move(Vector2 _moveDir)
     {

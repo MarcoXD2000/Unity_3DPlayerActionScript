@@ -28,6 +28,7 @@ public class PlayerManager : MonoBehaviour
         Falling,
         Attacking,
         SuperAttacking,
+        Step,
     }
 
     //プレイヤーの状態
@@ -103,10 +104,10 @@ public class PlayerManager : MonoBehaviour
     private void Update()
     {
         //プレイヤー現在の状態チェック
-        debugText.text = "State: " + state 
-                        + "\n Action:  " + action 
-                        + "\n IsGrounded: " + controller.isGrounded
-                        + "\n numGrounded: " + controller.contactedGroundListCount;
+        debugText.text = "State: " + state
+                        + "\n Action:  " + action
+                        + "\n IsGrounded: " + controller.isGrounded;
+                        //+ "\n numGrounded: " + controller.contactedGroundListCount;
 
         switch (this.state)
         {
@@ -160,7 +161,7 @@ public class PlayerManager : MonoBehaviour
     private void GroundInput_Idling()
     {
         //落下
-        if (!controller.isGrounded)
+        if (controller.isFalling)
         {
             nextAction = Fall;
             return;
@@ -187,7 +188,7 @@ public class PlayerManager : MonoBehaviour
     private void GroundInput_Moving()
     {
         //落下
-        if (!controller.isGrounded)
+        if (controller.isFalling)
         {
             nextAction = Fall;
             return;
@@ -261,7 +262,14 @@ public class PlayerManager : MonoBehaviour
         //{
         //    moveDirection = playerMove.ReadValue<Vector2>();    //空中回転方向
         //}
-        
+
+        //落下
+        if (controller.isFalling)
+        {
+            nextAction = Fall;
+            return;
+        }
+
         nextAction = Rotate; //回転
 
         if (jumpFrames > 0)
@@ -280,7 +288,7 @@ public class PlayerManager : MonoBehaviour
     //空中：落下
     private void AirInput_Falling()
     {
-        nextAction = Fall;
+        nextAction = Rotate; //回転
 
         if (controller.isGrounded)
         {
@@ -314,7 +322,7 @@ public class PlayerManager : MonoBehaviour
         state = PlayerState.Air;        //現在の状態：空中
 
         controller.PlayerJump();
-        animator.Jump();
+        //animator.Jump();
 
         jumpFrames = jumpFrameAmount;
     }
@@ -335,6 +343,7 @@ public class PlayerManager : MonoBehaviour
     private void Idle()
     {
         action = PlayerAction.Idling;
+        controller.PlayerStopMoving();
 
         moveDirection = Vector2.zero;
         animator.Move(moveDirection);
@@ -343,9 +352,10 @@ public class PlayerManager : MonoBehaviour
     //着地
     private void Land()
     {
+        animator.ResetJump();
+        if (!controller.PlayerLanding()) { return; }
         state = PlayerState.Ground;
         Idle();
-        controller.OnLanding();
     }
 
 }
